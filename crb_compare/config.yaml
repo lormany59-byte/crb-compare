@@ -1,0 +1,17 @@
+# CRB Deposit Comparison — configuration
+# ປັບໄດ້ບໍ່ຕ້ອງແກ້ໂຄ້ດ
+
+branch_map:
+  LA0011201: "ສາຂາ"
+  LA0011202: "ໜ່ວຍບໍລິການ ວຽງທອງ"
+  LA0011203: "ໜ່ວຍບໍລິການ ຄູນຄຳ"
+
+thresholds:        # |diff| >= ຄ່ານີ້ ຈຶ່ງນັບເປັນ "ລາຍເຄື່ອນໄຫວໃຫຍ່"
+  LAK: 100000000
+  USD: 10000
+  THB: 500000
+  CNY: 1000
+
+currency_order: [LAK, USD, THB, CNY]
+
+output_raw_report: false   # ເປີດ/ປິດ sheet "Report" (ສຳເນົາວິທີເກົ່າ)

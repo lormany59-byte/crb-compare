@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "CRB Compare — Flask web app",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["crb_compare/app.py"],
+      "port": 5000
+    }
+  ]
+}

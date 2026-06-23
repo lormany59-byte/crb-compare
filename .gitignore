@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.xlsx
+!crb_compare/tests/**/*.xlsx
+.pytest_cache/
+*.egg-info/
+.DS_Store
