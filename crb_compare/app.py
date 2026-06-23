@@ -19,7 +19,10 @@ logger = logging.getLogger(__name__)
 BASE_DIR = Path(__file__).resolve().parent
 DEFAULT_CONFIG_PATH = BASE_DIR / "config.yaml"
 
-app = Flask(__name__)
+# Absolute template_folder so the app serves correctly no matter how it is
+# imported (root app.py/main.py shims, gunicorn from any cwd, etc.) — without
+# it Flask resolves templates relative to the wrong root_path and 500s.
+app = Flask(__name__, template_folder=str(BASE_DIR / "templates"))
 app.config["MAX_CONTENT_LENGTH"] = 200 * 1024 * 1024  # 200MB, ~42k-row files
 
 
