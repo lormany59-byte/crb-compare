@@ -9,14 +9,12 @@ Usage:
 import argparse
 import logging
 import sys
-from pathlib import Path
 
 import yaml
 
 from compare import compute_diff, determine_base_compare
 from excel_writer import create_comparison_workbook, write_excel
-from reader import read_crb
-from reconcile import reconcile
+from reader import extract_date_from_filename, read_crb
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 logger = logging.getLogger(__name__)
@@ -39,16 +37,18 @@ def load_config(path) -> dict:
 
 
 def run(file_a: str, file_b: str, out_path: str, cfg: dict) -> dict:
-    """Run the full pipeline; returns stats dict. Raises on reconcile/data errors."""
-    df1, lak1, date1 = read_crb(file_a)
-    df2, lak2, date2 = read_crb(file_b)
+    """Run the full pipeline; returns stats dict. Raises on data errors."""
+    df1, _ = read_crb(file_a)
+    df2, _ = read_crb(file_b)
 
-    reconcile(df1["LAKBAL"].sum(), lak1, Path(file_a).name)
-    reconcile(df2["LAKBAL"].sum(), lak2, Path(file_b).name)
+    date1 = extract_date_from_filename(file_a)
+    date2 = extract_date_from_filename(file_b)
 
-    base_df, base_date, base_lak, compare_df, compare_date, compare_lak = (
-        determine_base_compare(df1, date1, df2, date2, lak1, lak2)
+    base_df, base_date, compare_df, compare_date = determine_base_compare(
+        df1, date1, df2, date2
     )
+    base_lak = base_df["LAKBAL"].sum()
+    compare_lak = compare_df["LAKBAL"].sum()
     logger.info(f"Base: {base_date}, Compare: {compare_date}")
 
     merged, stats = compute_diff(

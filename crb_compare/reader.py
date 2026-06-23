@@ -1,6 +1,7 @@
 """Step 1: read, clean, and group a single CRB export file."""
 
 import logging
+import re
 import warnings
 from pathlib import Path
 
@@ -19,55 +20,35 @@ REQUIRED_COLUMNS = [
 ]
 
 
-def _extract_summary_lak(path) -> float:
-    """Pull Total LAK out of the summary block (row 5 of the sheet).
+def extract_date_from_filename(filename) -> str:
+    """Pull YYYYMMDD out of a CRB filename like CRB_2026-05-18_09_49_10.xlsx.
 
-    Row 5 holds the grand total in LAK (all currencies converted), which is
-    always the largest positive number on that row — bigger than any single
-    per-currency subtotal above it.
+    The PROCESSING DATE column inside the file is a T-1 extract (it reflects
+    the prior business day's closing balances, generated the next morning),
+    so the calendar date the report should show/order by comes from the
+    filename instead.
     """
-    df_raw = pd.read_excel(path, sheet_name="CRBreport", header=None, nrows=5)
-    row5 = df_raw.iloc[4]
-
-    candidates = []
-    for col_idx, val in enumerate(row5):
-        if pd.isna(val):
-            continue
-        if isinstance(val, (int, float)):
-            num = float(val)
-        elif isinstance(val, str):
-            cleaned = val.replace(",", "").strip()
-            try:
-                num = float(cleaned)
-            except ValueError:
-                continue
-        else:
-            continue
-        if num > 0:
-            candidates.append((col_idx, num))
-
-    if not candidates:
-        raise ValueError(
-            f"ບໍ່ພົບ Total LAK ໃນ summary block ແຖວ 5 ຂອງໄຟລ໌ {Path(path).name}"
-        )
-
-    col_idx, total_lak = max(candidates, key=lambda x: x[1])
-    logger.info(f"  Summary Total LAK (row 5, col {col_idx}): {total_lak:,.2f}")
-    return total_lak
+    name = Path(filename).name
+    match = re.search(r"(\d{4})[-_](\d{2})[-_](\d{2})", name)
+    if not match:
+        raise ValueError(f"ບໍ່ພົບວັນທີ່ໃນຊື່ໄຟລ໌ (ຄາດຫວັງ YYYY-MM-DD): {name}")
+    return "".join(match.groups())
 
 
-def read_crb(path) -> tuple[pd.DataFrame, float, str]:
+def read_crb(path) -> tuple[pd.DataFrame, str]:
     """Read and clean one CRB export file.
+
+    Rows 1-5 are a summary/totals block and are never read — the real header
+    is row 6 and data starts at row 7.
 
     Returns:
         grouped: one row per CONTRACT with BAL / LAKBAL / BRANCH / CURRENCY / CUSTOMER
-        total_lak: Total LAK pulled from the summary block (for reconcile)
-        processing_date: YYYYMMDD string
+        processing_date: YYYYMMDD string from the file's own PROCESSING DATE
+            column (kept for diagnostics only — callers should use
+            extract_date_from_filename for the date that drives the report)
     """
     path = Path(path)
     logger.info(f"Reading {path.name}...")
-
-    total_lak = _extract_summary_lak(path)
 
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
@@ -103,6 +84,14 @@ def read_crb(path) -> tuple[pd.DataFrame, float, str]:
     if empty_currency.any():
         logger.warning(
             f"  {empty_currency.sum()} ແຖວ CURRENCY ຫວ່າງ — ຖືເປັນ 0/ບໍ່ນັບ threshold"
+        )
+
+    raw_col = df["PROCESSING DATE"].dropna()
+    if not raw_col.empty:
+        raw_sample = raw_col.iloc[0]
+        logger.info(
+            f"  [DEBUG] PROCESSING DATE raw dtype={df['PROCESSING DATE'].dtype}, "
+            f"sample value={raw_sample!r} (type={type(raw_sample).__name__})"
         )
 
     proc_dates = df["PROCESSING DATE"].dropna().astype(str).str.strip()
@@ -150,4 +139,4 @@ def read_crb(path) -> tuple[pd.DataFrame, float, str]:
 
     logger.info(f"  Grouped to {len(grouped):,} unique contracts")
 
-    return grouped, total_lak, processing_date
+    return grouped, processing_date

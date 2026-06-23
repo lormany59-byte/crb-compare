@@ -12,12 +12,10 @@ def determine_base_compare(
     date1: str,
     df2: pd.DataFrame,
     date2: str,
-    lak1: float,
-    lak2: float,
 ):
     """Older PROCESSING DATE = base, newer = compare.
 
-    Returns (base_df, base_date, base_lak, compare_df, compare_date, compare_lak).
+    Returns (base_df, base_date, compare_df, compare_date).
     """
     if date1 == date2:
         raise ValueError(
@@ -25,8 +23,8 @@ def determine_base_compare(
             "ກະລຸນາໂຍນໄຟລ໌ຈາກ 2 ວັນທີ່ແຕກຕ່າງກັນ."
         )
     if date1 < date2:
-        return df1, date1, lak1, df2, date2, lak2
-    return df2, date2, lak2, df1, date1, lak1
+        return df1, date1, df2, date2
+    return df2, date2, df1, date1
 
 
 def compute_diff(

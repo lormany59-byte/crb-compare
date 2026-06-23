@@ -11,8 +11,7 @@ from flask import Flask, jsonify, render_template, request, send_file
 
 from compare import compute_diff, determine_base_compare
 from excel_writer import create_comparison_workbook
-from reader import read_crb
-from reconcile import reconcile
+from reader import extract_date_from_filename, read_crb
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 logger = logging.getLogger(__name__)
@@ -65,15 +64,17 @@ def process():
             file_b.save(tmp_b.name)
             tmp_paths.append(tmp_b.name)
 
-        df1, lak1, date1 = read_crb(tmp_paths[0])
-        df2, lak2, date2 = read_crb(tmp_paths[1])
+        df1, _ = read_crb(tmp_paths[0])
+        df2, _ = read_crb(tmp_paths[1])
 
-        reconcile(df1["LAKBAL"].sum(), lak1, file_a.filename)
-        reconcile(df2["LAKBAL"].sum(), lak2, file_b.filename)
+        date1 = extract_date_from_filename(file_a.filename)
+        date2 = extract_date_from_filename(file_b.filename)
 
-        base_df, base_date, base_lak, compare_df, compare_date, compare_lak = (
-            determine_base_compare(df1, date1, df2, date2, lak1, lak2)
+        base_df, base_date, compare_df, compare_date = determine_base_compare(
+            df1, date1, df2, date2
         )
+        base_lak = base_df["LAKBAL"].sum()
+        compare_lak = compare_df["LAKBAL"].sum()
 
         merged, stats = compute_diff(
             base_df, compare_df, cfg["branch_map"], thresholds, cfg["currency_order"]
@@ -119,4 +120,7 @@ def process():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    import os
+
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="127.0.0.1", port=port)

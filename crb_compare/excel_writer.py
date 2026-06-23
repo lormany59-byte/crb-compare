@@ -49,19 +49,29 @@ def create_comparison_workbook(
     base_label = _format_date(base_date)
     compare_label = _format_date(compare_date)
 
-    sig_increase = merged[
-        merged["is_significant"] & (merged["change_type"] == "ເພີ່ມ")
-    ].sort_values("diff", ascending=False)
-
-    sig_decrease = merged[
-        merged["is_significant"] & (merged["change_type"] == "ຫຼຸດ")
-    ].sort_values("diff", ascending=True)
+    significant = merged[merged["is_significant"]]
+    present_currencies = [c for c in currency_order if c in significant["CURRENCY"].unique()]
 
     _write_summary_sheet(
         wb, merged, stats, base_lak, compare_lak, currency_order, base_label, compare_label
     )
-    _write_change_sheet(wb, sig_increase, base_label, compare_label, "ເງິນເພີ່ມຂື້ນ")
-    _write_change_sheet(wb, sig_decrease, base_label, compare_label, "ເງິນທີ່ຫຼຸດລົງ")
+
+    for currency in present_currencies:
+        cur_rows = significant[significant["CURRENCY"] == currency]
+
+        cur_increase = cur_rows[cur_rows["change_type"] == "ເພີ່ມ"].sort_values(
+            "diff", ascending=False
+        )
+        cur_decrease = cur_rows[cur_rows["change_type"] == "ຫຼຸດ"].sort_values(
+            "diff", ascending=True
+        )
+
+        _write_change_sheet(
+            wb, cur_increase, base_label, compare_label, f"ເງິນເພີ່ມຂື້ນ {currency}"
+        )
+        _write_change_sheet(
+            wb, cur_decrease, base_label, compare_label, f"ເງິນທີ່ຫຼຸດລົງ {currency}"
+        )
 
     if output_raw_report:
         _write_raw_report_sheet(wb, merged, base_label, compare_label)
@@ -100,7 +110,7 @@ def _write_summary_sheet(
     ws.merge_cells(f"A{row}:F{row}")
     row += 2
 
-    ws.cell(row=row, column=1, value="ການ Reconcile ຍອດ LAK").font = Font(
+    ws.cell(row=row, column=1, value="ສະຫຼຸບຍອດ LAK").font = Font(
         name=FONT_NAME, bold=True, size=11
     )
     row += 1

@@ -3,9 +3,10 @@
   "configurations": [
     {
       "name": "CRB Compare — Flask web app",
-      "runtimeExecutable": "python",
+      "runtimeExecutable": "C:\\Users\\ACER\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
       "runtimeArgs": ["crb_compare/app.py"],
-      "port": 5000
+      "port": 5000,
+      "autoPort": true
     }
   ]
 }
