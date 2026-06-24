@@ -8,3 +8,8 @@ venv/
 *.egg-info/
 .DS_Store
 .claude/settings.local.json
+
+# PyInstaller build artifacts (the .exe is built locally, not committed)
+build/
+dist/
+*.spec

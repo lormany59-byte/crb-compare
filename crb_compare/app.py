@@ -1,6 +1,7 @@
 """Flask web app — drag two CRB exports in, get the styled comparison Excel back."""
 
 import logging
+import sys
 import traceback
 from io import BytesIO
 from pathlib import Path
@@ -16,7 +17,19 @@ from reader import extract_date_from_filename, read_crb
 logging.basicConfig(level=logging.INFO, format="%(levelname)s  %(message)s")
 logger = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).resolve().parent
+
+def _resource_base() -> Path:
+    """Where templates/ and config.yaml live.
+
+    When frozen by PyInstaller the bundled data is unpacked to sys._MEIPASS;
+    otherwise it sits next to this source file.
+    """
+    if getattr(sys, "frozen", False):
+        return Path(sys._MEIPASS)
+    return Path(__file__).resolve().parent
+
+
+BASE_DIR = _resource_base()
 DEFAULT_CONFIG_PATH = BASE_DIR / "config.yaml"
 
 # Absolute template_folder so the app serves correctly no matter how it is
