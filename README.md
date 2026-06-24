@@ -1,5 +1,7 @@
 # ລະບົບສົມທຽບເງິນຝາກ CRB — CRB Deposit Comparison
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/lormany59-byte/crb-compare)
+
 ເຄື່ອງມື web ສຳລັບ **ປຽບທຽບ (compare) ໄຟລ໌ສົ່ງອອກ CRB 2 ໄຟລ໌** ແລ້ວສ້າງເປັນ
 ໄຟລ໌ Excel ລາຍງານທີ່ຈັດຮູບແບບໃຫ້ສວຍງາມໂດຍອັດຕະໂນມັດ. ພຽງແຕ່ລາກ (drag & drop)
 ໄຟລ໌ Excel 2 ໄຟລ໌ເຂົ້າໄປ ກໍໄດ້ໄຟລ໌ລາຍງານປຽບທຽບກັບຄືນມາ.
